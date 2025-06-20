@@ -5,7 +5,7 @@ from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 
 #weather cred
-api = "05d3b05f0bcd4116aa9110249252205"
+api = "**enetrt API**"
 URL = f"http://api.worldweatheronline.com/premium/v1/weather.ashx"
 
 
@@ -51,7 +51,7 @@ def db_cv(db_path="detections_yolov5.db"):
 def db_mongo():
     """Fetch and return the last detection entry from MongoDB."""
     try:
-        uri = "mongodb+srv://ashutosh:9bfKUr9auUPh9XXx@omnisdb1.iha0lfx.mongodb.net/?retryWrites=true&w=majority&appName=omnisdb1"
+        uri = "**entermongo cred**"
         client = MongoClient(uri, server_api=ServerApi('1'))
 
         db = client["omnisens"]
@@ -61,7 +61,7 @@ def db_mongo():
         last_doc = collection.find_one(sort=[('_id', -1)])
         print("last_doc",last_doc)
         if last_doc:
-            # Convert ObjectId to string for JSON serialization
+            # Convert ObjectId to string for JSON serialization.
             last_doc['_id'] = str(last_doc['_id'])
             
             if 'mood' not in last_doc:
