@@ -1,0 +1,11 @@
+age,emotion,gender,temp,weather,adv_link
+12,sad,m,26,hazy,https://www.youtube.com/watch?v=rE-y-yMIeok&t=37s
+34,happy,f,26,rainy,https://www.youtube.com/watch?v=OtJV9SCyfuE
+56,sad,m,27,strom,https://www.youtube.com/watch?v=rE-y-yMIeok&t=37s
+7,smile,m,27,sunny,https://www.youtube.com/watch?v=OtJV9SCyfuE
+5,nutral,m,26,hazzy,https://www.youtube.com/watch?v=rE-y-yMIeok&t=37s
+34,sad,m,24,rainy,https://www.youtube.com/watch?v=OtJV9SCyfuE
+3,happy,m,25,rainy,https://www.youtube.com/watch?v=rE-y-yMIeok&t=37s
+32,happy,person,27,Haze,https://www.youtube.com/watch?v=OtJV9SCyfuE
+29,happy,F,30,"Mist",https://www.youtube.com/watch?v=OtJV9SCyfuE
+29,happy,F,29,"Mist, Rain Shower",https://www.youtube.com/watch?v=OtJV9SCyfuE

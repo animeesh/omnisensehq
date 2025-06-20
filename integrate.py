@@ -11,8 +11,9 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 import requests
 from datetime import datetime
-from utils import getweather, db_cv, instance
-
+from utils import getweather, db_cv, instance, db_mongo
+from pydantic import BaseModel
+import pandas as pd
 
 
 app = FastAPI()
@@ -26,6 +27,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+df = pd.read_csv("adv_map.csv")
+
+# Input model
+class UserInput(BaseModel):
+    age: int
+    emotion: str
+    gender: str
+    temp: int
+    weather: str
 
 logpath = datetime.now().strftime("%Y-%m-%d") + ".log"
 print(logpath)
@@ -47,7 +59,6 @@ logging.info("log initiated")
 async def ping():
     logging.info("API is active")
     return "Hello, I am alive"
-
 
 @app.get("/logdaterange")
 async def logdaterange(
@@ -72,9 +83,11 @@ async def logdaterange(
 async def adv_predict():
     try:
         time_date=instance()
-        cv_results=db_cv()
+        #cv_results=db_cv()
+        cv_results=db_mongo()
         weather_serv = getweather("Mumbai")
         combined_result = {**time_date, **cv_results, **weather_serv}
+        print("combined_result",combined_result)
         return combined_result 
     
     except Exception as e:
@@ -91,8 +104,72 @@ async def adv_predict():
          }
 
 
+@app.post("/recommend")
+def recommend_video(user: UserInput):
+    # Filter DataFrame
+    mask = (
+        (df["age"] == user.age) &
+        #(df["emotion"] == user.emotion) &
+        (df["gender"] == user.gender) &
+        (df["temp"] == user.temp) &
+        (df["weather"] == user.weather)
+    )
+    results = df[mask]
 
+    if not results.empty:
+        links = results["adv_link"].unique().tolist()
+        return {"status": "success", "recommended_links": links}
+    else:
+        return {"status": "no_match", "message": "No exact match found."}
 
+@app.post("/integ_recommend")
+def intrg_recommend_video(user: UserInput):
+    try:
+            time_date=instance()
+            cv_results=db_mongo()
+            print("cv_results - ",cv_results)
+            weather_serv = getweather("Mumbai")
+            combined_result = { **cv_results, **weather_serv}
+            # Filter DataFrame
+            age = cv_results["age"]
+            emotion = "happy" #combined_result["mood"]
+            gender = cv_results["gender"]
+            temp = weather_serv["Temp"]
+            weather = weather_serv["Weather"]
+            print("temp - ",temp)
+            print("weather - ",weather)
+            print("combined_result - ",combined_result)
+
+            mask = (
+                (df["age"] == age) &
+                (df["emotion"] == emotion) &
+                (df["gender"] == gender) &
+                (df["temp"] == temp) &
+                (df["weather"] == weather)
+            )
+            
+            results = df[mask]
+            if not results.empty:
+                links = results["adv_link"].unique().tolist()
+                return {"status": "success","inst":time_date, "param":combined_result ,"recommended_links": links[0]}
+            else:
+                return {"status": "no_match", "message": "No exact match found."}
+
+    
+    except Exception as e:
+        logging.exception(e)
+        #for default handling
+        return {
+            'Date': "",
+            'time': "",
+            'gender': "default",
+            'mood': "",
+            'conf': "",
+            'Temp': "",
+            'weather': ""
+        }
+
+    
 
 
 if __name__ == "__main__":

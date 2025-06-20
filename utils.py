@@ -1,6 +1,8 @@
 import requests
 from datetime import datetime
 import sqlite3
+from pymongo import MongoClient
+from pymongo.server_api import ServerApi
 
 #weather cred
 api = "05d3b05f0bcd4116aa9110249252205"
@@ -26,12 +28,14 @@ def db_cv(db_path="detections_yolov5.db"):
         if row:
             frame_id, timestamp, label, confidence, x, y, w, h = row
             age = 32
+            mood= "happy"
             #return {"gender":"male","age":32,"conf":0.82}
             result= {"age":age,"gender": label,"conf": confidence}
             print(result)
             return {
                 "age":age,
                 "gender": label,
+                "mood":mood,
                 "conf": confidence,
             }
         else:
@@ -43,6 +47,38 @@ def db_cv(db_path="detections_yolov5.db"):
         conn.close()
     
     
+
+def db_mongo():
+    """Fetch and return the last detection entry from MongoDB."""
+    try:
+        uri = "mongodb+srv://ashutosh:9bfKUr9auUPh9XXx@omnisdb1.iha0lfx.mongodb.net/?retryWrites=true&w=majority&appName=omnisdb1"
+        client = MongoClient(uri, server_api=ServerApi('1'))
+
+        db = client["omnisens"]
+        collection = db["comp_vision_data"]
+
+        # Get the last inserted document (sorted by _id or timestamp descending)
+        last_doc = collection.find_one(sort=[('_id', -1)])
+        print("last_doc",last_doc)
+        if last_doc:
+            # Convert ObjectId to string for JSON serialization
+            last_doc['_id'] = str(last_doc['_id'])
+            
+            if 'mood' not in last_doc:
+                last_doc['mood'] = 'happy' # Default value
+        
+        return last_doc  # Return the modified document
+    except Exception as e:
+        print(f"MongoDB error: {e}")
+        return {
+                '_id': 'None',
+                'age': 0,
+                'gender': 'A',
+                'ageconf': 0,
+                'genderconf': 0,
+                'time': '0',
+                'date': '0'
+                }
 
 def getweather(CITY):
     params = {
@@ -59,10 +95,12 @@ def getweather(CITY):
     current = data['data']['current_condition'][0]
     temp_C = current['temp_C']
     weather_desc = current['weatherDesc'][0]['value']
-    Temp_in_c= str(temp_C),
+    Temp_in_c= int(temp_C)
     weather = weather_desc
     print(f"🌡️ Temperature: {temp_C}°C")
     print(f"🌤️ Weather: {weather_desc}")
 
     return {"Temp":Temp_in_c,
             "Weather":weather}
+
+
